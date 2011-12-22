@@ -21,7 +21,7 @@
   (read-line))
 
 (defn pos-to-coords [pos]
-  ((juxt quot mod) (dec (Integer/parseInt pos)) 3))
+  ((juxt quot mod) (dec (read-string pos)) 3))
 
 (defn make-move [move, pos, board]
   (assoc-in board

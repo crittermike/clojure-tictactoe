@@ -1,11 +1,11 @@
-(def starting-board [[nil nil nil][nil nil nil][nil nil nil]])
+(def starting-board [[1 2 3][4 5 6][7 8 9]])
 
-(defn nil-to-space 
+(defn num-to-space 
   "Converts obj to a space if obj is null"
-  [obj]
-  (if (nil? obj)
+  [test]
+  (if (number? test)
       " "
-      obj))
+      test))
 
 (defn switch-players 
   "Swaps 1 with 2 and vise versa."
@@ -18,32 +18,46 @@
   "Returns the X char if player 1, otherwise O."
   [player]
   (if (= player 1)
-     \X
-     \O))
+      \X
+      \O))
+
+(defn third
+  "Returns the third item in the sequence."
+  [obj]
+  (nth obj 2))
+
+(defn winner
+  "Returns true if the board has a winner, otherwise false."
+  [board]
+    (or
+      ; rows
+      (apply = (first board))
+      (apply = (second board))
+      (apply = (third board))
+      ; columns
+      (apply = (map first board))
+      (apply = (map second board))
+      (apply = (map third board))
+      ; diagonals
+      (= (first (first board))
+         (second (second board))
+         (third (third board)))
+      (= (third (first board))
+         (second (second board))
+         (first (third board)))))
+  
 
 (defn printable-row 
   "Converts a 3-item vector to a printable row, so for example
-   [X, nil, O] becomes 'X| |O'"
+   [X, 5, O] becomes 'X| |O'"
   [row]
-  (apply str (interpose \| (map nil-to-space row))))
+  (apply str (interpose \| (map num-to-space row))))
 
 (defn printable-board 
   "Converts a 3x3 vector into a printable board, using rows from
    printable-row interposed with lines with dashes."
   [board]
-  (apply str (interpose "\n-----\n" (map printable-row board))))
-
-(defn valid-move 
-  "Returns true (valid move) only if the desired vector key's value
-   is null, meaning it's unoccupied."
-  [board coords]
-  (nil? (get-in board coords)))
-
-(defn prompt-move 
-  "Ask the player for the move, and read the input."
-  [player]
-  (println (str "Player " player ", enter a number 1-9 of the square you want"))
-  (read-line))
+  (apply str (interpose "\n-+-+-\n" (map printable-row board))))
 
 (defn pos-to-coords 
   "Takes a number 1-9 and returns the appropriate vector key. Examples: 
@@ -54,11 +68,25 @@
   [pos]
   ((juxt quot mod) (dec (read-string pos)) 3))
 
+(defn valid-move 
+  "Returns true (valid move) only if the desired vector key's value
+   is null, meaning it's unoccupied."
+  [board pos]
+  (if (number? (read-string pos))
+      (number? (get-in board (pos-to-coords pos)))
+      false)) 
+
+(defn prompt-move 
+  "Ask the player for the move, and read the input."
+  [player]
+  (println (str "Player " player ", enter a number 1-9 of the square you want"))
+  (read-line))
+
 (defn make-move 
   "Given a player, the desired position and the current board,
    make the move if it's valid, otherwise return recursively to try again."
   [player, pos, board]
-  (if (valid-move board (pos-to-coords pos))
+  (if (valid-move board pos)
       (assoc-in board
                 (pos-to-coords pos)
                 (get-move player))
@@ -68,9 +96,11 @@
   "The game loop. Print the board and then do the heavy lifting, returning recursively."
   [board player]
   (println (printable-board board))
-  (run-game (make-move player
-                       (prompt-move player)
-                       board)
-            (switch-players player)))
+  (if (winner board)
+      (println (str "Player " (switch-players player) " has won!"))
+      (run-game (make-move player
+                           (prompt-move player)
+                           board)
+                (switch-players player))))
 
 (run-game starting-board 1)

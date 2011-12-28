@@ -1,7 +1,7 @@
 (def starting-board [[1 2 3][4 5 6][7 8 9]])
 
 (defn num-to-space 
-  "Converts obj to a space if obj is null"
+  "Converts the param to a space if the param is a number. Used when printing board."
   [test]
   (if (number? test)
       " "

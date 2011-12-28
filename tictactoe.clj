@@ -26,7 +26,12 @@
   [obj]
   (nth obj 2))
 
-(defn winner
+(defn draw?
+  "Returns true if the board is full, hence a draw, otherwise false."
+  [board]
+  (nil? (some #(some number? %) board)))
+
+(defn winner?
   "Returns true if the board has a winner, otherwise false."
   [board]
     (or
@@ -45,7 +50,6 @@
       (= (third (first board))
          (second (second board))
          (first (third board)))))
-  
 
 (defn printable-row 
   "Converts a 3-item vector to a printable row, so for example
@@ -68,7 +72,7 @@
   [pos]
   ((juxt quot mod) (dec (read-string pos)) 3))
 
-(defn valid-move 
+(defn valid-move?
   "Returns true (valid move) only if the desired vector key's value
    is null, meaning it's unoccupied."
   [board pos]
@@ -86,7 +90,7 @@
   "Given a player, the desired position and the current board,
    make the move if it's valid, otherwise return recursively to try again."
   [player, pos, board]
-  (if (valid-move board pos)
+  (if (valid-move? board pos)
       (assoc-in board
                 (pos-to-coords pos)
                 (get-move player))
@@ -96,11 +100,12 @@
   "The game loop. Print the board and then do the heavy lifting, returning recursively."
   [board player]
   (println (printable-board board))
-  (if (winner board)
-      (println (str "Player " (switch-players player) " has won!"))
-      (run-game (make-move player
-                           (prompt-move player)
-                           board)
-                (switch-players player))))
+  (cond 
+    (draw? board) (println "There was a draw!")
+    (winner? board) (println (str "Player " (switch-players player) " has won!"))
+    :else (run-game (make-move player
+                               (prompt-move player)
+                               board)
+                    (switch-players player))))
 
 (run-game starting-board 1)
